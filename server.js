@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const productRoutes = require('./routes/products');
@@ -39,13 +40,23 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve client frontend static files from ../public
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// Serve client frontend static files from ../public (if present)
+const publicDir = path.join(__dirname, '..', 'public');
+const indexPath = path.join(publicDir, 'index.html');
 
-// Catch-all: serve index.html for any non-API route (SPA fallback)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
+if (fs.existsSync(indexPath)) {
+  app.use(express.static(publicDir));
+  app.get('*', (req, res) => {
+    res.sendFile(indexPath);
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({ message: 'SplendyCraft Backend API is running', status: 'ok' });
+  });
+  app.all('*', (req, res) => {
+    res.status(404).json({ error: 'Endpoint not found' });
+  });
+}
 
 // Centralized error handler
 app.use((err, req, res, next) => {
