@@ -16,18 +16,17 @@ const allowedOrigins = [
   process.env.ADMIN_ORIGIN,
   `http://localhost:${PORT}`,
   `http://127.0.0.1:${PORT}`,
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
 ].filter(Boolean);
 
+console.log('Allowed CORS origins:', allowedOrigins);
+
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (e.g., curl, Postman, same-origin)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: allowedOrigins,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json());
